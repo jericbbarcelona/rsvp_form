@@ -156,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   fit: BoxFit.cover,
                 ),
                   SizedBox(height: size.height * 0.02),
-                  Text('Kindy respond by February 06, 2021', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                  Text('Kindly respond by February 06, 2021', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                   Text('We look forward to celebrate with you', style: TextStyle(color: Colors.white, fontSize: 18)),
                 ],
                 ),

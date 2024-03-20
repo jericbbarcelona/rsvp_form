@@ -1,11 +1,9 @@
-
-// ignore_for_file: prefer_const_constructors, sort_child_properties_last, sized_box_for_whitespace
-
-import 'dart:convert';
+// ignore_for_file: prefer_const_constructors, sort_child_properties_last, sized_box_for_whitespace, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:http/http.dart' as http;
 
@@ -42,87 +40,101 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   static final GlobalKey<FormBuilderState> _fbKey = GlobalKey<FormBuilderState>();
-  
+
   @override
   Widget build(BuildContext context) {
-  final size = MediaQuery.of(context).size;
+    final size = MediaQuery.of(context).size;
 
-  SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.manual,
-    overlays: [
-      SystemUiOverlay.top, // Shows Status bar and hides Navigation bar
-    ],
-  );
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [
+        SystemUiOverlay.top, // Shows Status bar and hides Navigation bar
+      ],
+    );
 
-  Future<void> postRsvpForm(String firstName, String lastName, String contactNo, String email) async {
-      final url = Uri.parse('https://integration.micaresvc.com/interviewapi/AssessmentTestRSVP');
-      final headers = {'Content-Type': 'application/json'};
-      final body = jsonEncode({'ApiKey': '123456', 'FirstName': firstName, 'LastName': lastName, 'ContactNo': contactNo, 'Email': email});
-
-      final response = await http.put(url, headers: headers, body: body);
-      if (response.statusCode == 200) {
-        print('Success');
-      } else {
-        print('Error');
-      }
-    }
-    
-void showCustomDialog(BuildContext context, String message) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return Dialog(
-            child: Container(
-              height: size.height * 0.3,
-              child: Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 20),
-                    Text('THANK YOU', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: Color(0xff00A6B8))),
-                    SizedBox(height: 10),
-                    Text('Thank you for your submission RSVP FORM was submitted successfully.', textAlign: TextAlign.center, style: TextStyle(fontSize: 18),),
-                    Expanded(
-                      child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Container(
-                      margin: EdgeInsets.all(10),
-                      width: size.width * 0.8,
-                      child: ElevatedButton(
-                        onPressed: () {
-                        Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          "Ok",
-                          style: TextStyle(color: Colors.white),
+    void showCustomDialog(BuildContext context, String message) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return Dialog(
+              child: Container(
+                height: size.height * 0.3,
+                child: Padding(
+                  padding: const EdgeInsets.all(5.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: 20),
+                      Text('THANK YOU',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                              color: Color(0xff00A6B8))),
+                      SizedBox(height: 10),
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                            margin: EdgeInsets.all(10),
+                            width: size.width * 0.8,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text(
+                                "Ok",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(color: Colors.white70, width: 1),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  backgroundColor: Color(0xff00A6B8),
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                                  textStyle: TextStyle(
+                                      fontSize: 20, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Colors.white70, width: 1),
-                        borderRadius: BorderRadius.circular(20),
                       ),
-                        backgroundColor: Color(0xff00A6B8),
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                        textStyle: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                      ),
-                    ),
-                      
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        });
-}
-    
+            );
+          });
+    }
+
+    Future<void> postRsvpForm(String firstName, String lastName, String contactNo, String email) async {
+      Map<String, String> queryParameters = {
+        'ApiKey': '123456',
+        'FirstName': firstName,
+        'LastName': lastName,
+        'ContactNo': contactNo,
+        'Email': email,
+      };
+      final uri = Uri.parse('https://integration.micaresvc.com/interviewapi/AssessmentTestRSVP').replace(queryParameters: queryParameters);
+      await http.get(uri).then((value) =>
+        showCustomDialog(context, value.body)
+      ).catchError((error) => {
+        Fluttertoast.showToast(
+            msg: "Error Message: $error",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            textColor: Colors.white
+        )
+      });
+  }
+
   return Scaffold(
     body: Stack(
       children: [
@@ -136,7 +148,7 @@ void showCustomDialog(BuildContext context, String message) {
                 child: Column(children: [
                   SizedBox(height: size.height * 0.07),
                   Text('RSVP Form', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30)),
-                  SizedBox(height: size.height * 0.02),
+                  SizedBox(height: size.height * 0.015),
                   Image.asset(
                   'assets/line.png',
                   height: 45.0,
@@ -154,26 +166,24 @@ void showCustomDialog(BuildContext context, String message) {
           ],
         ),
         Align(
-          alignment: Alignment(0, 0.45),
+          alignment: Alignment(0, 0.5),
           child: Container(
             width: size.width * 0.9,
-            height: size.height * 0.62,
+            height: size.height * 0.65,
             child: Card(
               elevation: 10,
-              shape: RoundedRectangleBorder(
-                side: BorderSide(color: Colors.white, width: 1),
-                borderRadius: BorderRadius.circular(10),
-              ),
+              shape: RoundedRectangleBorder(side: BorderSide(color: Colors.white, width: 1), borderRadius: BorderRadius.circular(10),),
                 child: Container(
                   padding: EdgeInsets.all(20),
                     width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Please enter all the fields.', 
-                          style: TextStyle(color: Color(0xff00A6B8), fontSize: 16, fontWeight: FontWeight.bold)
-                        ),
+                        Text('Please enter all the fields.',
+                            style: TextStyle(
+                                color: Color(0xff00A6B8),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold)),
                         SizedBox(height: size.height * 0.03),
                         FormBuilder(
                           key: _fbKey,
@@ -181,96 +191,118 @@ void showCustomDialog(BuildContext context, String message) {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('First Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xff636363)),),
+                              Text(
+                                'First Name',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xff636363)),
+                              ),
                               FormBuilderTextField(
-                              name: 'firstName',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                              decoration: InputDecoration(
-                                hintText: 'First Name',
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)
+                                name: 'firstName',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                decoration: InputDecoration(
+                                    hintText: 'First Name',
+                                    hintStyle: TextStyle(
+                                        fontWeight: FontWeight.bold, color: Colors.grey)),
+                                validator: FormBuilderValidators.compose(
+                                    [FormBuilderValidators.required()]),
+                                keyboardType: TextInputType.name,
                               ),
-                              validator: FormBuilderValidators.compose([
-                                  FormBuilderValidators.required()]),
-                              keyboardType: TextInputType.name,
-                            ),SizedBox(height: size.height * 0.025),
-                              Text('Last Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xff636363)),),
+                              SizedBox(height: size.height * 0.025),
+                              Text(
+                                'Last Name',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xff636363)),
+                              ),
                               FormBuilderTextField(
-                              name: 'lastName',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                              decoration: InputDecoration(
-                                hintText: 'Last Name',
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)
+                                name: 'lastName',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                decoration: InputDecoration(
+                                    hintText: 'Last Name',
+                                    hintStyle: TextStyle(
+                                        fontWeight: FontWeight.bold, color: Colors.grey)),
+                                validator: FormBuilderValidators.compose(
+                                    [FormBuilderValidators.required()]),
+                                keyboardType: TextInputType.name,
                               ),
-                              validator: FormBuilderValidators.compose([
-                                  FormBuilderValidators.required()]),
-                              keyboardType: TextInputType.name,
-                            ),SizedBox(height: size.height * 0.025),
-                              Text('Contact Number', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xff636363)),),
-                            FormBuilderTextField(
-                              name: 'contactNumber',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                              decoration: InputDecoration(
-                                hintText: 'Contact Number',
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)
+                              SizedBox(height: size.height * 0.025),
+                              Text(
+                                'Contact Number',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xff636363)),
                               ),
-                              validator: FormBuilderValidators.compose([
-                                  FormBuilderValidators.required()]),
-                              keyboardType: TextInputType.number,
-                            ),SizedBox(height: size.height * 0.025),
-                              Text('Email', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xff636363)),),
-                            FormBuilderTextField(
-                              name: 'email',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                              decoration: InputDecoration(
-                                hintText: 'Email',
-                                hintStyle: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)
+                              FormBuilderTextField(
+                                name: 'contactNumber',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                decoration: InputDecoration(
+                                    hintText: 'Contact Number',
+                                    hintStyle: TextStyle(
+                                        fontWeight: FontWeight.bold, color: Colors.grey)),
+                                validator: FormBuilderValidators.compose(
+                                    [FormBuilderValidators.required()]),
+                                keyboardType: TextInputType.number,
                               ),
-                              validator: FormBuilderValidators.compose([
-                                  FormBuilderValidators.required(), FormBuilderValidators.email()]),
-                              keyboardType: TextInputType.emailAddress,
-                            )
-                            
+                              SizedBox(height: size.height * 0.025),
+                              Text(
+                                'Email',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xff636363)),
+                              ),
+                              FormBuilderTextField(
+                                name: 'email',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                                decoration: InputDecoration(
+                                    hintText: 'Email',
+                                    hintStyle: TextStyle(
+                                        fontWeight: FontWeight.bold, color: Colors.grey)),
+                                validator: FormBuilderValidators.compose([
+                                  FormBuilderValidators.required(),
+                                  FormBuilderValidators.email()
+                                ]),
+                                keyboardType: TextInputType.emailAddress,
+                              )
                             ],
                           ),
                         )
-
-                        ],
+                      ],
                     ),
-            ),
-          )
+                  ),
+                )),
           ),
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            margin: EdgeInsets.all(10),
-            width: size.width * 0.8,
-            child: ElevatedButton(
-              child: Text('Submit',),
-              onPressed: () {
-                if (_fbKey.currentState!.saveAndValidate()) {
-                  String firstName = _fbKey.currentState!.value['firstName'].toString();
-                  String lastName = _fbKey.currentState!.value['lastName'].toString();
-                  String contactNo = _fbKey.currentState!.value['contactNo'].toString();
-                  String email = _fbKey.currentState!.value['email'].toString();
-                  postRsvpForm(firstName, lastName, contactNo, email);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                  side: BorderSide(color: Colors.white70, width: 1),
-                  borderRadius: BorderRadius.circular(20),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              margin: EdgeInsets.all(10),
+              width: size.width * 0.8,
+              child: ElevatedButton(
+                child: Text(
+                  'Submit',
                 ),
-                  backgroundColor: Color(0xff00A6B8),
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                  textStyle: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  if (_fbKey.currentState!.saveAndValidate()) {
+                    String firstName = _fbKey.currentState!.value['firstName'].toString();
+                    String lastName = _fbKey.currentState!.value['lastName'].toString();
+                    String contactNo = _fbKey.currentState!.value['contactNo'].toString();
+                    String email = _fbKey.currentState!.value['email'].toString();
+                    postRsvpForm(firstName, lastName, contactNo, email);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(color: Colors.white70, width: 1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    backgroundColor: Color(0xff00A6B8),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                    textStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+            ),
           ),
-          ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
   }
 }
